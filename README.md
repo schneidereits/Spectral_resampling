@@ -108,42 +108,6 @@ Spectral_resampling/
 - `resample_scripts/`: Main resampling scripts and notebooks
 - `wavelength/`: Sensor spectral configuration files and extraction script
 
-## Examples
-
-### Basic Resampling
-
-```python
-import pandas as pd
-import numpy as np
-from resample_lib_to_enmap import main
-
-# Load your spectral library
-# spectral_lib = pd.read_csv('your_spectral_library.csv')
-
-# Run resampling (after configuring paths in the script)
-main()
-```
-
-### Visualization
-
-Use the visualization scripts to compare original and resampled spectra:
-
-```python
-# In resample_lib_to_enmap_vis.py
-resampled_raw_df = pd.read_csv("spectral_library_resampled_enmap.csv")
-# ... plotting code ...
-```
-
-## Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
@@ -152,8 +116,8 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 - Spectral configurations based on official sensor specifications
 - Landsat response functions from USGS
-- Inspired by various remote sensing spectral resampling techniques
+- Inspired by various remote sensing spectral resampling techniques from the [enmap-box](https://github.com/EnMAP-Box/enmap-box)
 
 ## Contact
 
-For questions or issues, please open an issue on GitHub or contact the maintainers.
+For questions or issues, please open an issue on GitHub.
