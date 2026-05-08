@@ -30,10 +30,10 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 # ============================================================================
 # Edit these parameters before running the script
 
-SENSOR = "AVIRIS-NG"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9
+SENSOR = "sentinel-2a"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9, sentinel-2a, sentinel-2b, sentinel-2c
 INPUT_LIB_PATH = r"E:\Project_EnFireMap\01_data\03_spectral_libraries\99_library_joined_with_lake.csv"  # Path to your spectral library
 OUTPUT_DIR = r"C:\Users\schnesha\Downloads\resample_test"  # Output directory for resampled files
-N_JOBS = 10  # Number of parallel jobs
+N_JOBS = 7  # Number of parallel jobs
 
 # ============================================================================
 # Default Parameters
@@ -90,6 +90,27 @@ SENSOR_CONFIG = {
         "description": "Landsat 9 OLI-2 sensor configuration",
         "resampling_method": "response_function",
         "bands": ["Blue", "Green", "Red", "NIR", "SWIR1", "SWIR2"]
+    },
+    "sentinel-2a": {
+        "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
+        "sheet_name": "Spectral Responses (S2A)",
+        "output_prefix": "spectral_library_resampled_sentinel2a",
+        "description": "Sentinel-2A sensor configuration",
+        "resampling_method": "sentinel_response_function"
+    },
+    "sentinel-2b": {
+        "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
+        "sheet_name": "Spectral Responses (S2B)",
+        "output_prefix": "spectral_library_resampled_sentinel2b",
+        "description": "Sentinel-2B sensor configuration",
+        "resampling_method": "sentinel_response_function"
+    },
+    "sentinel-2c": {
+        "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
+        "sheet_name": "Spectral Responses (S2C)",
+        "output_prefix": "spectral_library_resampled_sentinel2c",
+        "description": "Sentinel-2C sensor configuration",
+        "resampling_method": "sentinel_response_function"
     },
 }
 
@@ -284,6 +305,120 @@ def resample_library_landsat(reflectance_values, wavelengths, responses, band_na
     return resampled
 
 
+def load_sentinel_responses(response_file, sheet_names):
+    """
+    Load Sentinel-2 band response functions from Excel file.
+    
+    Args:
+        response_file: Path to Sentinel-2 response function Excel file
+        sheet_names: List of sheet names (e.g., ['Spectral responses (S2A)', 'Spectral responses (S2B)'])
+    
+    Returns:
+        Tuple of (responses dict, band_centers dict)
+        - responses: {sheet_name: {band_name: (wavelengths, weights), ...}, ...}
+        - band_centers: {sheet_name: {band_name: center_wavelength, ...}, ...}
+    
+    Raises:
+        FileNotFoundError: If response file does not exist
+    """
+    if not os.path.exists(response_file):
+        raise FileNotFoundError(f"Sentinel-2 response file not found: {response_file}")
+    
+    all_responses = {}
+    all_band_centers = {}
+    
+    for sheet_name in sheet_names:
+        df = pd.read_excel(response_file, sheet_name=sheet_name)
+        wavelengths_s2 = df["SR_WL"].values
+        
+        responses = {}
+        band_centers = {}
+        
+        # Each column (except SR_WL) is a band's response function
+        for col in df.columns:
+            if col != "SR_WL":
+                weights = df[col].values
+                # Store as tuple of (wavelengths, weights) for interpolation
+                responses[col] = (wavelengths_s2, weights)
+                # Calculate band center as weighted mean
+                valid_weights = weights[weights > 0]
+                if len(valid_weights) > 0:
+                    band_centers[col] = np.average(wavelengths_s2[weights > 0], weights=valid_weights)
+                else:
+                    band_centers[col] = np.mean(wavelengths_s2)
+        
+        all_responses[sheet_name] = responses
+        all_band_centers[sheet_name] = band_centers
+        print(f"  Loaded {len(responses)} bands from {sheet_name}")
+    
+    return all_responses, all_band_centers
+
+
+def resample_spectrum_sentinel(reflectance, wavelengths, responses):
+    """
+    Resample a single spectrum using Sentinel-2 response functions.
+    
+    Args:
+        reflectance: 1D array of reflectance values
+        wavelengths: 1D array of input wavelengths
+        responses: Dict of {band_name: (response_wavelengths, response_weights), ...}
+    
+    Returns:
+        Dict of {band_name: resampled_value}
+    """
+    resampled = {}
+    
+    for band_name, (response_wl, response_weights) in responses.items():
+        # Interpolate response function to input wavelengths
+        interp_weights = np.interp(wavelengths, response_wl, response_weights, left=0, right=0)
+        
+        # Find wavelengths with non-zero response
+        valid_mask = interp_weights > 0
+        
+        if not np.any(valid_mask):
+            # No overlap between input and response function wavelengths
+            resampled[band_name] = np.nan
+        else:
+            # Weighted average using interpolated response
+            valid_indices = np.where(valid_mask)[0]
+            ref_subset = reflectance[valid_indices]
+            w_subset = interp_weights[valid_indices]
+            
+            # Handle NaNs in reflectance
+            ref_valid_mask = ~np.isnan(ref_subset)
+            if np.any(ref_valid_mask):
+                ref_valid_indices = np.where(ref_valid_mask)[0]
+                resampled[band_name] = np.sum(ref_subset[ref_valid_indices] * w_subset[ref_valid_indices]) / np.sum(w_subset[ref_valid_indices])
+            else:
+                resampled[band_name] = np.nan
+    
+    return resampled
+
+
+def resample_library_sentinel(reflectance_values, wavelengths, responses, band_names, n_jobs=10):
+    """
+    Parallelized Sentinel-2 resampling for entire spectral library.
+    
+    Args:
+        reflectance_values: 2D array of shape (n_spectra, n_wavelengths)
+        wavelengths: 1D array of input wavelengths
+        responses: Dict of response functions for a single sensor
+        band_names: List of band names in correct order
+        n_jobs: Number of parallel jobs (default: 10)
+    
+    Returns:
+        2D array of resampled reflectance with shape (n_spectra, n_bands)
+    """
+    results = Parallel(n_jobs=n_jobs)(
+        delayed(resample_spectrum_sentinel)(reflectance_values[i], wavelengths, responses)
+        for i in range(reflectance_values.shape[0])
+    )
+    
+    # Convert list of dicts to 2D array
+    resampled = np.array([[result[band] for band in band_names] for result in results])
+    return resampled
+
+
 def load_sensor_config(sensor_name):
     """
     Load sensor configuration from registry.
@@ -335,7 +470,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
     Main resampling workflow.
     
     Args:
-        sensor: Sensor name (e.g., 'AVIRIS-3', 'enmap', 'AVIRIS-NG', 'landsat-8', 'landsat-9')
+        sensor: Sensor name (e.g., 'AVIRIS-3', 'enmap', 'AVIRIS-NG', 'landsat-8', 'landsat-9', 'sentinel-2a', 'sentinel-2b', 'sentinel-2c')
         input_lib_path: Path to input spectral library CSV
         output_dir: Directory for output files (default: current directory)
         wavelengths: Input wavelength array (default: 350-2500 nm)
@@ -439,6 +574,51 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
         print(f"\n[4] Interpolating missing values and resampling...")
         reflectance_interpolated = interpolate_reflectance(reflectance_values)
         resampled_interp = resample_library_landsat(reflectance_interpolated, wavelengths, responses, band_names, n_jobs=n_jobs)
+        
+        resampled_interp_df = pd.concat(
+            [
+                meta_cols.reset_index(drop=True),
+                pd.DataFrame(resampled_interp, columns=band_cols)
+            ],
+            axis=1,
+        )
+        
+        interp_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}_interpolated.csv")
+        resampled_interp_df.to_csv(interp_out_path, index=False)
+        print(f"  Saved → {interp_out_path}")
+    
+    # --- Resampling: Response Function (Sentinel-2) ---
+    elif resampling_method == "sentinel_response_function":
+        sheet_name = sensor_cfg["sheet_name"]
+        all_responses, all_band_centers = load_sentinel_responses(sensor_cfg["response_file"], [sheet_name])
+        responses = all_responses[sheet_name]
+        band_centers_dict = all_band_centers[sheet_name]
+        # Sort band names by their center wavelengths (smallest to largest)
+        band_names = sorted(responses.keys(), key=lambda x: band_centers_dict[x])
+        
+        # --- Resample Uninterpolated Library ---
+        print(f"\n[3] Resampling uninterpolated spectra...")
+        resampled_raw = resample_library_sentinel(reflectance_values, wavelengths, responses, band_names, n_jobs=n_jobs)
+        
+        # Use band center wavelengths for column naming
+        band_cols = [f"{band_centers_dict[band]:.1f}" for band in band_names]
+        
+        resampled_raw_df = pd.concat(
+            [
+                meta_cols.reset_index(drop=True),
+                pd.DataFrame(resampled_raw, columns=band_cols)
+            ],
+            axis=1,
+        )
+        
+        raw_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}.csv")
+        resampled_raw_df.to_csv(raw_out_path, index=False)
+        print(f"  Saved → {raw_out_path}")
+        
+        # --- Interpolate and Resample ---
+        print(f"\n[4] Interpolating missing values and resampling...")
+        reflectance_interpolated = interpolate_reflectance(reflectance_values)
+        resampled_interp = resample_library_sentinel(reflectance_interpolated, wavelengths, responses, band_names, n_jobs=n_jobs)
         
         resampled_interp_df = pd.concat(
             [

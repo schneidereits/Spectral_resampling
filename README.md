@@ -24,6 +24,7 @@ A collection of Python scripts and Jupyter notebooks for resampling spectral lib
   - EnMAP (Environmental Mapping and Analysis Program)
   - PRISMA (PRecursor ItalianaSatellite for Mediterranean basin observation)
   - EMIT (Earth Surface Mineral Dust Source Investigation)
+  - Sentinel-2A, Sentinel-2B, and Sentinel-2C (using spectral response functions)
   - Landsat 8 and 9 (using response functions or FWHM)
 - **Interpolation**: Handle missing data in spectral libraries with interpolation
 - **Parallel Processing**: Utilize joblib for efficient parallel computation
@@ -110,6 +111,7 @@ Spectral_resampling/
     ├── enmap_spectral_config.csv
     ├── EMIT_spectral_config.csv
     ├── PRISMA_spectral_config.csv
+    └── COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx
 ```
 
 - `resample_scripts/`: Main resampling scripts and notebooks
