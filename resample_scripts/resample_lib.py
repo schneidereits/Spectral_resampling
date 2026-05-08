@@ -30,7 +30,7 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 # ============================================================================
 # Edit these parameters before running the script
 
-SENSOR = "AVIRIS-NG"  # Options: AVIRIS-3, AVIRIS-NG, enmap, landsat-8, landsat-9
+SENSOR = "AVIRIS-NG"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9
 INPUT_LIB_PATH = r"E:\Project_EnFireMap\01_data\03_spectral_libraries\99_library_joined_with_lake.csv"  # Path to your spectral library
 OUTPUT_DIR = r"C:\Users\schnesha\Downloads\resample_test"  # Output directory for resampled files
 N_JOBS = 10  # Number of parallel jobs
@@ -63,6 +63,18 @@ SENSOR_CONFIG = {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "enmap_spectral_config.csv"),
         "output_prefix": "spectral_library_resampled_enmap",
         "description": "EnMAP sensor configuration",
+        "resampling_method": "gaussian"
+    },
+    "PRISMA": {
+        "config_file": os.path.join(PROJECT_DIR, "wavelength", "PRISMA_spectral_config.csv"),
+        "output_prefix": "spectral_library_resampled_PRISMA",
+        "description": "PRISMA sensor configuration",
+        "resampling_method": "gaussian"
+    },
+    "EMIT": {
+        "config_file": os.path.join(PROJECT_DIR, "wavelength", "EMIT_spectral_config.csv"),
+        "output_prefix": "spectral_library_resampled_EMIT",
+        "description": "EMIT sensor configuration",
         "resampling_method": "gaussian"
     },
     "landsat-8": {

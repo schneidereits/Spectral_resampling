@@ -30,7 +30,7 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 # ============================================================================
 # Edit these parameters before running the script
 
-SENSOR = "landsat-9"  # Options: AVIRIS-3, AVIRIS-NG, enmap, landsat-8, landsat-9
+SENSOR = "AVIRIS-NG"  # Options: AVIRIS-3, AVIRIS-NG, enmap, landsat-8, landsat-9
 ORIGINAL_LIB_PATH = r"E:\Project_EnFireMap\01_data\03_spectral_libraries\99_library_joined_with_lake.csv"  # Original spectral library
 RESAMPLED_DIR = r"C:\Users\schnesha\Downloads\resample_test"  # Directory where resampled files are located
 

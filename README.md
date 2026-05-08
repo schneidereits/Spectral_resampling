@@ -19,8 +19,11 @@ A collection of Python scripts and Jupyter notebooks for resampling spectral lib
 
 - **Spectral Library Resampling**: Resample spectral reflectance data to sensor-specific band configurations
 - **Multiple Sensor Support**:
-  - EnMAP (Environmental Mapping and Analysis Program)
   - AVIRIS-3 (Airborne Visible/Infrared Imaging Spectrometer)
+  - AVIRIS-NG (Airborne Visible/Infrared Imaging Spectrometer - Next Generation)
+  - EnMAP (Environmental Mapping and Analysis Program)
+  - PRISMA (PRecursor ItalianaSatellite for Mediterranean basin observation)
+  - EMIT (Earth Surface Mineral Dust Source Investigation)
   - Landsat 8 and 9 (using response functions or FWHM)
 - **Interpolation**: Handle missing data in spectral libraries with interpolation
 - **Parallel Processing**: Utilize joblib for efficient parallel computation
@@ -102,7 +105,11 @@ Spectral_resampling/
 └── wavelength/
     ├── AVIRIS-3_spectral_config.csv
     ├── AVIRIS-3_spectral_config_extract.py
-    └── enmap_spectral_config.csv
+    ├── AVIRIS-NG_spectral_config.csv
+    ├── AVIRIS-ng_spectral_config_extract.py
+    ├── enmap_spectral_config.csv
+    ├── EMIT_spectral_config.csv
+    ├── PRISMA_spectral_config.csv
 ```
 
 - `resample_scripts/`: Main resampling scripts and notebooks
