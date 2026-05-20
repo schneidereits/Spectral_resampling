@@ -465,6 +465,7 @@ def load_band_config(config_file):
 # ============================================================================
 # Main Processing
 # ============================================================================
+
 def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS, n_jobs=10):
     """
     Main resampling workflow.
@@ -525,7 +526,9 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        raw_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}.csv")
+        # Use basename of input file + prefix
+        base_name = os.path.splitext(os.path.basename(input_lib_path))[0]
+        raw_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}.csv")
         resampled_raw_df.to_csv(raw_out_path, index=False)
         print(f"  Saved → {raw_out_path}")
         
@@ -542,7 +545,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        interp_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}_interpolated.csv")
+        interp_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}_interpolated.csv")
         resampled_interp_df.to_csv(interp_out_path, index=False)
         print(f"  Saved → {interp_out_path}")
     
@@ -566,7 +569,9 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        raw_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}.csv")
+        # Use basename of input file + prefix
+        base_name = os.path.splitext(os.path.basename(input_lib_path))[0]
+        raw_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}.csv")
         resampled_raw_df.to_csv(raw_out_path, index=False)
         print(f"  Saved → {raw_out_path}")
         
@@ -583,7 +588,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        interp_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}_interpolated.csv")
+        interp_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}_interpolated.csv")
         resampled_interp_df.to_csv(interp_out_path, index=False)
         print(f"  Saved → {interp_out_path}")
     
@@ -611,7 +616,9 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        raw_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}.csv")
+        # Use basename of input file + prefix
+        base_name = os.path.splitext(os.path.basename(input_lib_path))[0]
+        raw_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}.csv")
         resampled_raw_df.to_csv(raw_out_path, index=False)
         print(f"  Saved → {raw_out_path}")
         
@@ -628,7 +635,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS
             axis=1,
         )
         
-        interp_out_path = os.path.join(output_dir, f"{sensor_cfg['output_prefix']}_interpolated.csv")
+        interp_out_path = os.path.join(output_dir, f"{base_name}_{sensor_cfg['output_prefix']}_interpolated.csv")
         resampled_interp_df.to_csv(interp_out_path, index=False)
         print(f"  Saved → {interp_out_path}")
     
