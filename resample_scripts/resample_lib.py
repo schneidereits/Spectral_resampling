@@ -10,6 +10,10 @@ Usage:
 """
 
 import os
+# Get the directory where this script is located
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+# Get the parent directory (where wavelength/ folder is)
+PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 import sys
 from pathlib import Path
 import numpy as np
@@ -18,30 +22,49 @@ from joblib import Parallel, delayed
 import matplotlib.pyplot as plt
 
 
-# Get the directory where this script is located
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
-
-# Get the parent directory (where wavelength/ folder is)
-PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
-
-
 # ============================================================================
 # USER CONFIGURATION
 # ============================================================================
 # Edit these parameters before running the script
 
-SENSOR = "sentinel-2a"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9, sentinel-2a, sentinel-2b, sentinel-2c
-INPUT_LIB_PATH = r"E:\Project_EnFireMap\01_data\03_spectral_libraries\99_library_joined_with_lake.csv"  # Path to your spectral library
 OUTPUT_DIR = r"C:\Users\schnesha\Downloads\resample_test"  # Output directory for resampled files
 N_JOBS = 7  # Number of parallel jobs
+SENSOR = "sentinel-2a"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9, sentinel-2a, sentinel-2b, sentinel-2c
 
 # ============================================================================
-# Default Parameters
+# Input Lib CONFIGURATION
 # ============================================================================
-DEFAULT_WAVELENGTHS = np.arange(350, 2501)
+INPUT_LIB_PATH = r"E:\Project_EnFireMap\01_data\03_spectral_libraries\99_library_joined_with_lake.csv"  # Path to your spectral library
 
+# For Spectral libraries with 1 nm res 
+INPUT_LIB_WAVELENGTHS = np.arange(350, 2501)
 
-
+# If enmap image endmembers are to be resampled 
+if true:
+    INPUT_LIB_WAVELENGTHS =   np.array([
+        418.416, 424.043, 429.457, 434.686, 439.757, 444.699, 449.539, 454.306, 459.031, 463.73,
+        468.411, 473.08, 477.744, 482.411, 487.087, 491.78, 496.497, 501.243, 506.02, 510.828,
+        515.672, 520.55, 525.467, 530.424, 535.422, 540.463, 545.551, 550.687, 555.873, 561.112,
+        566.405, 571.756, 577.166, 582.636, 588.171, 593.773, 599.446, 605.193, 611.017, 616.923,
+        622.92, 628.987, 635.112, 641.294, 647.537, 653.841, 660.207, 666.637, 673.131, 679.691,
+        686.319, 693.014, 699.78, 706.617, 713.524, 720.501, 727.545, 734.654, 741.826, 749.06,
+        756.353, 763.703, 771.108, 778.567, 786.078, 793.639, 801.248, 808.905, 816.608, 824.355,
+        832.145, 839.976, 847.847, 855.757, 863.703, 871.683, 879.692, 887.729, 895.789, 901.962,
+        911.572, 921.32, 931.204, 941.218, 951.361, 961.629, 972.017, 982.524, 993.145, 1003.88,
+        1014.72, 1025.66, 1036.7, 1047.84, 1059.07, 1070.39, 1081.79, 1093.26, 1104.81,
+        1116.43, 1128.11, 1139.84, 1151.62, 1163.44, 1175.31, 1187.2, 1199.11, 1211.05,
+        1223, 1234.97, 1246.95, 1258.93, 1270.92, 1282.92, 1294.91, 1306.9, 1318.88,
+        1330.86, 1461.11, 1472.74, 1484.34, 1495.89, 1507.4, 1518.87, 1530.29, 1541.68,
+        1553.01, 1564.31, 1575.55, 1586.76, 1597.91, 1609.02, 1620.09, 1631.11, 1642.08,
+        1653, 1663.87, 1674.7, 1685.47, 1696.2, 1706.87, 1717.5, 1728.08, 1738.6,
+        1749.08, 1759.51, 1967.66, 1977.08, 1986.45, 1995.79, 2005.08, 2014.33, 2023.54,
+        2032.71, 2041.83, 2050.92, 2059.96, 2068.97, 2077.93, 2086.86, 2095.74, 2104.59,
+        2113.4, 2122.17, 2130.9, 2139.6, 2148.26, 2156.88, 2165.47, 2174.02, 2182.53,
+        2191.01, 2199.46, 2207.86, 2216.24, 2224.58, 2232.89, 2241.16, 2249.4, 2257.61,
+        2265.79, 2273.93, 2282.04, 2290.12, 2298.17, 2306.19, 2314.18, 2322.13, 2330.05,
+        2337.94, 2345.81, 2353.64, 2361.44, 2369.21, 2376.95, 2384.66, 2392.34, 2400,
+        2407.62, 2415.21, 2422.78, 2430.32, 2437.83, 2445.3
+    ], dtype=np.float64)
 
 # ============================================================================
 # Sensor Configuration Registry
@@ -466,7 +489,7 @@ def load_band_config(config_file):
 # Main Processing
 # ============================================================================
 
-def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS, n_jobs=10):
+def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGTHS, n_jobs=10):
     """
     Main resampling workflow.
     
@@ -656,7 +679,7 @@ if __name__ == "__main__":
             sensor=SENSOR,
             input_lib_path=INPUT_LIB_PATH,
             output_dir=OUTPUT_DIR,
-            wavelengths=DEFAULT_WAVELENGTHS,
+            wavelengths=INPUT_LIB_WAVELENGTHS,
             n_jobs=N_JOBS
         )
     except (FileNotFoundError, ValueError) as e:
