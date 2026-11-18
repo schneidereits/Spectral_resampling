@@ -19,7 +19,7 @@ import matplotlib.pyplot as plt
 
 
 # Get the directory where this script is located
-SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+SCRIPT_DIR = r"E:\temp\temp_akpona\99_earsel_2026\Spectral_resampling\resample_scripts"
 
 # Get the parent directory (where wavelength/ folder is)
 PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
@@ -30,45 +30,45 @@ PROJECT_DIR = os.path.dirname(SCRIPT_DIR)
 # ============================================================================
 # Edit these parameters before running the script
 
-SENSOR = "landsat-9"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9, sentinel-2a, sentinel-2b, sentinel-2c
-INPUT_LIB_PATH = r"R:\enmap\dc_cali\enmap\temp\enmap_multi\02_lib\temp_resampling\NPV.csv"  # Path to your spectral library
-OUTPUT_DIR = r"R:\enmap\dc_global_biomes"   # Output directory for resampled files
+SENSOR = "enmap"  # Options: AVIRIS-3, AVIRIS-NG, enmap, PRISMA, EMIT, landsat-8, landsat-9, sentinel-2a, sentinel-2b, sentinel-2c
+INPUT_LIB_PATH = r"E:\temp\temp_akpona\99_earsel_2026\Spectral_resampling\spectral_libraries\raw\image_spectra_lps.csv"  # Path to your spectral library
+INPUT_LIB_PATH = r"E:\temp\temp_akpona\99_earsel_2026\Spectral_resampling\spectral_libraries\raw\ecosis_and_co.csv"  # Path to your spectral library
+
+OUTPUT_DIR = r"C:\Users\schnesha\Downloads\temp"  # Output directory for resampled files
 N_JOBS = 7  # Number of parallel jobs
 
 # ============================================================================
 # Default Parameters
 # ============================================================================
+DEFAULT_WAVELENGTHS = np.arange(350, 2501)
+# Define the default wavelengths as provided
+# custom EnMAP wavelengths for image spectra
+if "image_spectra" in INPUT_LIB_PATH:
+    DEFAULT_WAVELENGTHS = np.array([
+        418.416, 424.043, 429.457, 434.686, 439.757, 444.699, 449.539, 454.306, 459.031, 463.73,
+        468.411, 473.08, 477.744, 482.411, 487.087, 491.78, 496.497, 501.243, 506.02, 510.828,
+        515.672, 520.55, 525.467, 530.424, 535.422, 540.463, 545.551, 550.687, 555.873, 561.112,
+        566.405, 571.756, 577.166, 582.636, 588.171, 593.773, 599.446, 605.193, 611.017, 616.923,
+        622.92, 628.987, 635.112, 641.294, 647.537, 653.841, 660.207, 666.637, 673.131, 679.691,
+        686.319, 693.014, 699.78, 706.617, 713.524, 720.501, 727.545, 734.654, 741.826, 749.06,
+        756.353, 763.703, 771.108, 778.567, 786.078, 793.639, 801.248, 808.905, 816.608, 824.355,
+        832.145, 839.976, 847.847, 855.757, 863.703, 871.683, 879.692, 887.729, 895.789, 901.962,
+        911.572, 921.32, 931.204, 941.218, 951.361, 961.629, 972.017, 982.524, 993.145, 1003.88,
+        1014.72, 1025.66, 1036.7, 1047.84, 1059.07, 1070.39, 1081.79, 1093.26, 1104.81, 1116.43,
+        1128.11, 1139.84, 1151.62, 1163.44, 1175.31, 1187.2, 1199.11, 1211.05, 1223, 1234.97,
+        1246.95, 1258.93, 1270.92, 1282.92, 1294.91, 1306.9, 1318.88, 1330.86, 1461.11, 1472.74,
+        1484.34, 1495.89, 1507.4, 1518.87, 1530.29, 1541.68, 1553.01, 1564.31, 1575.55, 1586.76,
+        1597.91, 1609.02, 1620.09, 1631.11, 1642.08, 1653, 1663.87, 1674.7, 1685.47, 1696.2,
+        1706.87, 1717.5, 1728.08, 1738.6, 1749.08, 1759.51, 1967.66, 1977.08, 1986.45, 1995.79,
+        2005.08, 2014.33, 2023.54, 2032.71, 2041.83, 2050.92, 2059.96, 2068.97, 2077.93, 2086.86,
+        2095.74, 2104.59, 2113.4, 2122.17, 2130.9, 2139.6, 2148.26, 2156.88, 2165.47, 2174.02,
+        2182.53, 2191.01, 2199.46, 2207.86, 2216.24, 2224.58, 2232.89, 2241.16, 2249.4, 2257.61,
+        2265.79, 2273.93, 2282.04, 2290.12, 2298.17, 2306.19, 2314.18, 2322.13, 2330.05, 2337.94,
+        2345.81, 2353.64, 2361.44, 2369.21, 2376.95, 2384.66, 2392.34, 2400, 2407.62, 2415.21,
+        2422.78, 2430.32, 2437.83, 2445.3
+    ])
 
-# For Spectral libraries with 1 nm res 
-INPUT_LIB_WAVELENGTHS = np.arange(350, 2501)
 
-# If enmap image endmembers are to be resampled
-IS_ENMAP_IMAGE_ENDMEMBERS = True  # True only if input_lib is already-EnMAP-band endmember spectra
-if IS_ENMAP_IMAGE_ENDMEMBERS:
-    INPUT_LIB_WAVELENGTHS = np.array([
-    418, 424, 429, 435, 440, 445, 450, 454, 459, 464,
-    468, 473, 478, 482, 487, 492, 496, 501, 506, 511,
-    516, 521, 525, 530, 535, 540, 546, 551, 556, 561,
-    566, 572, 577, 583, 588, 594, 599, 605, 611, 617,
-    623, 629, 635, 641, 648, 654, 660, 667, 673, 680,
-    686, 693, 700, 707, 714, 721, 728, 735, 742, 749,
-    756, 764, 771, 779, 786, 794, 801, 809, 817, 824,
-    832, 840, 848, 856, 864, 872, 880, 888, 896, 902,
-    912, 921, 931, 941, 951, 962, 972, 983, 993, 1004,
-    1015, 1026, 1037, 1048, 1059, 1070, 1082, 1093, 1105,
-    1116, 1128, 1140, 1152, 1163, 1175, 1187, 1199, 1211,
-    1223, 1235, 1247, 1259, 1271, 1283, 1295, 1307, 1319,
-    1331, 1461, 1473, 1484, 1496, 1507, 1519, 1530, 1542,
-    1553, 1564, 1576, 1587, 1598, 1609, 1620, 1631, 1642,
-    1653, 1664, 1675, 1685, 1696, 1707, 1718, 1728, 1739,
-    1749, 1760, 1968, 1977, 1986, 1996, 2005, 2014, 2024,
-    2033, 2042, 2051, 2060, 2069, 2078, 2087, 2096, 2105,
-    2113, 2122, 2131, 2140, 2148, 2157, 2165, 2174, 2183,
-    2191, 2199, 2208, 2216, 2225, 2233, 2241, 2249, 2258,
-    2266, 2274, 2282, 2290, 2298, 2306, 2314, 2322, 2330,
-    2338, 2346, 2354, 2361, 2369, 2377, 2385, 2392, 2400,
-    2408, 2415, 2423, 2430, 2438, 2445
-    ], dtype=int)
 
 # ============================================================================
 # Sensor Configuration Registry
@@ -76,44 +76,44 @@ if IS_ENMAP_IMAGE_ENDMEMBERS:
 SENSOR_CONFIG = {
     "AVIRIS-3": {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "AVIRIS-3_spectral_config.csv"),
-        "output_prefix": "spectral_library_resampled_AVIRIS-3",
+        "output_prefix": "resampled_AVIRIS-3",
         "description": "AVIRIS-3 sensor configuration",
         "resampling_method": "gaussian"
     },
     "AVIRIS-NG": {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "AVIRIS-NG_spectral_config.csv"),
-        "output_prefix": "spectral_library_resampled_AVIRIS-NG",
+        "output_prefix": "resampled_AVIRIS-NG",
         "description": "AVIRIS-NG sensor configuration",
         "resampling_method": "gaussian"
     },
     "enmap": {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "enmap_spectral_config.csv"),
-        "output_prefix": "spectral_library_resampled_enmap",
+        "output_prefix": "resampled_enmap",
         "description": "EnMAP sensor configuration",
         "resampling_method": "gaussian"
     },
     "PRISMA": {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "PRISMA_spectral_config.csv"),
-        "output_prefix": "spectral_library_resampled_PRISMA",
+        "output_prefix": "resampled_PRISMA",
         "description": "PRISMA sensor configuration",
         "resampling_method": "gaussian"
     },
     "EMIT": {
         "config_file": os.path.join(PROJECT_DIR, "wavelength", "EMIT_spectral_config.csv"),
-        "output_prefix": "spectral_library_resampled_EMIT",
+        "output_prefix": "resampled_EMIT",
         "description": "EMIT sensor configuration",
         "resampling_method": "gaussian"
     },
     "landsat-8": {
         "response_file": os.path.join(PROJECT_DIR, "wavelength", "L8_OLI_Ball_BA_RSR.v1.1-1.xlsx"),
-        "output_prefix": "spectral_library_resampled_landsat8",
+        "output_prefix": "resampled_landsat8",
         "description": "Landsat 8 OLI sensor configuration",
         "resampling_method": "response_function",
         "bands": ["Blue", "Green", "Red", "NIR", "SWIR1", "SWIR2"]
     },
     "landsat-9": {
         "response_file": os.path.join(PROJECT_DIR, "wavelength", "L9_OLI2_Ball_BA_RSR.v2-1.xlsx"),
-        "output_prefix": "spectral_library_resampled_landsat9",
+        "output_prefix": "resampled_landsat9",
         "description": "Landsat 9 OLI-2 sensor configuration",
         "resampling_method": "response_function",
         "bands": ["Blue", "Green", "Red", "NIR", "SWIR1", "SWIR2"]
@@ -121,21 +121,21 @@ SENSOR_CONFIG = {
     "sentinel-2a": {
         "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
         "sheet_name": "Spectral Responses (S2A)",
-        "output_prefix": "spectral_library_resampled_sentinel2a",
+        "output_prefix": "resampled_sentinel2a",
         "description": "Sentinel-2A sensor configuration",
         "resampling_method": "sentinel_response_function"
     },
     "sentinel-2b": {
         "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
         "sheet_name": "Spectral Responses (S2B)",
-        "output_prefix": "spectral_library_resampled_sentinel2b",
+        "output_prefix": "resampled_sentinel2b",
         "description": "Sentinel-2B sensor configuration",
         "resampling_method": "sentinel_response_function"
     },
     "sentinel-2c": {
         "response_file": os.path.join(PROJECT_DIR, "wavelength", "COPE-GSEG-EOPG-TN-15-0007 - Sentinel-2 Spectral Response Functions 2024 - 4.0.xlsx"),
         "sheet_name": "Spectral Responses (S2C)",
-        "output_prefix": "spectral_library_resampled_sentinel2c",
+        "output_prefix": "resampled_sentinel2c",
         "description": "Sentinel-2C sensor configuration",
         "resampling_method": "sentinel_response_function"
     },
@@ -145,26 +145,60 @@ SENSOR_CONFIG = {
 # ============================================================================
 # Utility Functions
 # ============================================================================
-def interpolate_reflectance(reflectance_values: np.ndarray) -> np.ndarray:
+def interpolate_reflectance(reflectance_values: np.ndarray, wavelengths: np.ndarray) -> np.ndarray:
     """
-    Interpolates NaNs in each reflectance spectrum row-wise.
-    
-    Args:
-        reflectance_values: 2D array of shape (n_spectra, n_wavelengths)
-    
-    Returns:
-        Interpolated reflectance array with NaNs filled where possible
+    Interpolates NaNs using forward-backward interpolation for each spectrum.
+    Forward: left-to-right, Backward: right-to-left, then average.
     """
     interpolated = reflectance_values.copy()
-    for i in range(reflectance_values.shape[0]):
-        row = reflectance_values[i]
-        nans = np.isnan(row)
-        if np.any(nans):
-            not_nan_idx = np.where(~nans)[0]
-            nan_idx = np.where(nans)[0]
-            if len(not_nan_idx) >= 2:
-                interpolated_vals = np.interp(nan_idx, not_nan_idx, row[not_nan_idx])
-                interpolated[i, nans] = interpolated_vals
+    n_spectra, n_wavelengths = reflectance_values.shape
+    
+    for i in range(n_spectra):
+        row = reflectance_values[i].copy()
+        nan_mask = np.isnan(row)
+        
+        if np.any(nan_mask):
+            # Create non-nan version for interpolation
+            row_filled = row.copy()
+            
+            # Forward interpolation
+            for j in range(n_wavelengths):
+                if nan_mask[j]:
+                    # Find next valid value to the right
+                    next_valid = np.where(~nan_mask[j:])[0]
+                    if len(next_valid) > 0:
+                        next_idx = j + next_valid[0]
+                        # Find previous valid value to the left
+                        prev_valid = np.where(~nan_mask[:j+1])[0]
+                        if len(prev_valid) > 0:
+                            prev_idx = prev_valid[-1]
+                            # Linear interpolation
+                            row_filled[j] = np.interp(
+                                wavelengths[j],
+                                [wavelengths[prev_idx], wavelengths[next_idx]],
+                                [row[prev_idx], row[next_idx]]
+                            )
+            
+            # Backward interpolation (for any remaining NaNs at edges)
+            for j in range(n_wavelengths-1, -1, -1):
+                if nan_mask[j]:
+                    # Find previous valid value to the left
+                    prev_valid = np.where(~nan_mask[:j+1])[0]
+                    if len(prev_valid) > 0:
+                        prev_idx = prev_valid[-1]
+                        # Find next valid value to the right
+                        next_valid = np.where(~nan_mask[j:])[0]
+                        if len(next_valid) > 0:
+                            next_idx = j + next_valid[0]
+                            # Linear interpolation
+                            row_filled[j] = np.interp(
+                                wavelengths[j],
+                                [wavelengths[prev_idx], wavelengths[next_idx]],
+                                [row[prev_idx], row[next_idx]]
+                            )
+            
+            interpolated[i] = row_filled
+    
     return interpolated
 
 
@@ -493,7 +527,7 @@ def load_band_config(config_file):
 # Main Processing
 # ============================================================================
 
-def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGTHS, n_jobs=10):
+def main(sensor, input_lib_path, output_dir=".", wavelengths=DEFAULT_WAVELENGTHS, n_jobs=10):
     """
     Main resampling workflow.
     
@@ -561,7 +595,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGT
         
         # --- Interpolate and Resample ---
         print(f"\n[4] Interpolating missing values and resampling...")
-        reflectance_interpolated = interpolate_reflectance(reflectance_values)
+        reflectance_interpolated = interpolate_reflectance(reflectance_values, wavelengths)
         resampled_interp = resample_library(reflectance_interpolated, wavelengths, band_centers, band_fwhm, n_jobs=n_jobs)
         
         resampled_interp_df = pd.concat(
@@ -604,7 +638,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGT
         
         # --- Interpolate and Resample ---
         print(f"\n[4] Interpolating missing values and resampling...")
-        reflectance_interpolated = interpolate_reflectance(reflectance_values)
+        reflectance_interpolated = interpolate_reflectance(reflectance_values, wavelengths)
         resampled_interp = resample_library_landsat(reflectance_interpolated, wavelengths, responses, band_names, n_jobs=n_jobs)
         
         resampled_interp_df = pd.concat(
@@ -651,7 +685,7 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGT
         
         # --- Interpolate and Resample ---
         print(f"\n[4] Interpolating missing values and resampling...")
-        reflectance_interpolated = interpolate_reflectance(reflectance_values)
+        reflectance_interpolated = interpolate_reflectance(reflectance_values, wavelengths)
         resampled_interp = resample_library_sentinel(reflectance_interpolated, wavelengths, responses, band_names, n_jobs=n_jobs)
         
         resampled_interp_df = pd.concat(
@@ -673,7 +707,6 @@ def main(sensor, input_lib_path, output_dir=".", wavelengths=INPUT_LIB_WAVELENGT
     print(f"Processing complete!")
     print(f"{'='*70}\n")
 
-
 # ============================================================================
 # Entry Point
 # ============================================================================
@@ -683,9 +716,12 @@ if __name__ == "__main__":
             sensor=SENSOR,
             input_lib_path=INPUT_LIB_PATH,
             output_dir=OUTPUT_DIR,
-            wavelengths=INPUT_LIB_WAVELENGTHS,
+            wavelengths=DEFAULT_WAVELENGTHS,
             n_jobs=N_JOBS
         )
     except (FileNotFoundError, ValueError) as e:
         print(f"Error: {e}", file=sys.stderr)
         sys.exit(1)
+
+
+
